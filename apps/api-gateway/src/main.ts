@@ -7,7 +7,7 @@ import express from "express";
 import cors from "cors";
 import proxy from "express-http-proxy";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import swaggerUI from "swagger-ui-express";
 import axios from "axios";
 import cookieParser from "cookie-parser";
@@ -36,7 +36,9 @@ const limiter = rateLimit({
   message: { error: "Too many requests from this IP, please try again later!" },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: true, // enable the `X-RateLimit-*` headers
-  keyGenerator: (req: any) => req.ip, // Use IP address as the key for rate limiting
+  keyGenerator: (req: any) => { 
+    return req.user?.id ? `user:${req.user.id}` : ipKeyGenerator(req);
+  }, // Use IP address as the key for rate limiting
 });
 app.use(limiter);
 
