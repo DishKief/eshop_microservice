@@ -1,9 +1,16 @@
 import Redis from "ioredis";
 
-const redis = new Redis({
-    host: process.env.REDIS_HOST || "127.0.0.1",
-    port: Number(process.env.REDIS_PORT) || 6379,
-    password: process.env.REDIS_PASSWORD
+// It's best practice to use environment variables for credentials
+const connectionString = process.env.REDIS_URL!;
+
+if (!connectionString) {
+    throw new Error("REDIS_URL environment variable is not set.");
+}
+
+const redis = new Redis(connectionString);
+
+redis.on("error", (err) => {
+    console.error("Redis connection error:", err);
 });
 
 export default redis;
