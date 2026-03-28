@@ -4,7 +4,7 @@
   "private": true,
   "nx": {
     "implicitDependencies": [
-      "@eshop-microservice/auth-service"
+      "auth-service"
     ],
     "targets": {
       "e2e": {
@@ -17,8 +17,8 @@
           "passWithNoTests": true
         },
         "dependsOn": [
-          "@eshop-microservice/auth-service:build",
-          "@eshop-microservice/auth-service:serve"
+          "auth-service:build",
+          "auth-service:serve"
         ]
       }
     }
