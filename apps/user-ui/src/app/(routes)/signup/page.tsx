@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { response } from "express";
 import { useMutation } from "@tanstack/react-query";
+import { verify } from "crypto";
 
 type FormData = {
   name: string;
@@ -17,7 +18,6 @@ type FormData = {
 
 const Signup = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showOtp, setShowOtp] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [timer, setTimer] = useState(60);
@@ -49,7 +49,7 @@ const Signup = () => {
   const signupMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/user-registration`,
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/user-registration`,
         data,
       );
       return response.data;
@@ -60,6 +60,23 @@ const Signup = () => {
       setCanResend(false);
       setTimer(60);
       startResendTimer();
+    },
+  });
+
+  const verifyOtpMutation = useMutation({
+    mutationFn: async () => {
+      if (!userData) return;
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/verify-user`,
+        {
+          ...userData,
+          otp: otpSent.join(""),
+        },
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      route.push("/login");
     },
   });
 
@@ -89,7 +106,11 @@ const Signup = () => {
     }
   };
 
-  const resendOtp = () => {};
+  const resendOtp = () => {
+    if (userData) {
+      signupMutation.mutate(userData);
+    }
+  };
 
   return (
     <div className="w-full py-10 min-h-[85vh] bg-[#f1f1f1]">
@@ -187,9 +208,6 @@ const Signup = () => {
               >
                 {signupMutation.isPending ? "Signing Up..." : "Sign Up"}
               </button>
-              {serverError && (
-                <p className="text-red-500 text-sm mt-2">{serverError}</p>
-              )}
             </form>
           ) : (
             <div className="">
@@ -213,8 +231,13 @@ const Signup = () => {
               </div>
               <button
                 className={`w-full mt-4 text-lg cursor-pointer bg-blue-500 text-white py-2 rounded-lg `}
+                disabled={
+                  verifyOtpMutation.isPending ||
+                  otpSent.some((digit) => digit === "")
+                }
+                onClick={() => verifyOtpMutation.mutate()}
               >
-                Verify OTP
+                {verifyOtpMutation.isPending ? "Verifying..." : "Verify OTP"}
               </button>
               <p className="text-center text-sm mt-4">
                 {canResend ? (
@@ -228,6 +251,14 @@ const Signup = () => {
                   `Resend OTP in ${timer}s`
                 )}
               </p>
+              {verifyOtpMutation?.isError &&
+                verifyOtpMutation.error instanceof AxiosError && (
+                  <p className="text-red-500 text-sm mt-2">
+                    {verifyOtpMutation.error.response?.data?.message ||
+                      verifyOtpMutation.error.message ||
+                      "An error occurred while verifying OTP."}
+                  </p>
+                )}
             </div>
           )}
         </div>

@@ -1,8 +1,10 @@
 "use client";
 import GoogleButton from "apps/user-ui/src/shared/components/google-button";
+import axios, { AxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -23,15 +25,32 @@ const Login = () => {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      // Simulate API call for login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // On successful login, redirect to home page
+  const loginMuatation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/v1/login-user`,
+        data,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setServerError(null);
       route.push("/");
-    } catch (error) {
-      setServerError("Login failed. Please try again.");
-    }
+    },
+    onError: (error: AxiosError) => {
+      const errorMessage =
+        (error.response?.data as { message?: string })?.message ||
+        error.message ||
+        "Invalid credentials. Please try again.";
+      setServerError(errorMessage);
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    loginMuatation.mutate(data);
   };
 
   return (
@@ -129,9 +148,10 @@ const Login = () => {
 
             <button
               type="submit"
+              disabled={loginMuatation.isPending}
               className="w-full text-lg cursor-pointer bg-black text-white py-2 rounded-lg"
             >
-              Login
+              {loginMuatation.isPending ? "Logging in..." : "Login"}
             </button>
             {serverError && (
               <p className="text-red-500 text-sm mt-2">{serverError}</p>
