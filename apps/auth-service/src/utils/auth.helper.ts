@@ -137,8 +137,9 @@ export const handleForgotPassword = async (
 
     // Find user/seller in DB based on userType and email
     const user =
-      userType === "user" &&
-      (await prisma.users.findUnique({ where: { email } }));
+      userType === "user"
+        ? await prisma.users.findUnique({ where: { email } })
+        : await prisma.sellers.findUnique({ where: { email } });
 
     if (!user) {
       throw new ValidationError(`${userType} doesn't exist with this email!`);

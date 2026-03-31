@@ -2,9 +2,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URI,
-  headers: {
-    "Content-Type": "application/json",
-  },
+
   withCredentials: true, // Include cookies in requests
 });
 
