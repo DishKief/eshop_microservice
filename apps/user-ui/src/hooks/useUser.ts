@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../utils/axiosInstance";
-import { useEffect } from "react";
 
 // fetch user data from the API
 const fetchUser = async () => {

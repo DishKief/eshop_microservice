@@ -69,8 +69,8 @@ const Signup = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log("OTP Verification Success:", data);
-      setSellerId(data?.id);
+      console.log("OTP Verification Success:", data?.seller?.id);
+      setSellerId(data?.seller?.id);
       setActiveStep(2);
     },
   });

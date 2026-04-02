@@ -13,6 +13,7 @@ import bcrypt from "bcryptjs";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { setCookie } from "../utils/cookies/setCookie";
 import Stripe from "stripe";
+import { decode } from "punycode";
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 //   apiVersion: "2026-03-25.dahlia",
@@ -113,6 +114,9 @@ export const loginUser = async (
       return next(new AuthenticationError("Invalid email or password!"));
     }
 
+    res.clearCookie("seller-access-token");
+    res.clearCookie("seller-refresh-token");
+
     // Generate access and refresh token
     const accessToken = jwt.sign(
       { userId: user.id, role: "user" },
@@ -143,16 +147,20 @@ export const loginUser = async (
   }
 };
 
+// refresh token
 export const refreshToken = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const refreshToken = req.cookies.refresh_token;
+    const refreshToken =
+      req.cookies["refreshToken"] ||
+      req.cookies["seller-refresh-token"] ||
+      req.headers?.authorization?.split(" ")[1];
 
     if (!refreshToken) {
-      return new ValidationError("Unauthorized! No refresh token.");
+      return next(new ValidationError("Unauthorized! No refresh token."));
     }
 
     const decoded = jwt.verify(
@@ -161,27 +169,39 @@ export const refreshToken = async (
     ) as { id: string; role: string };
 
     if (!decoded || !decoded.id || !decoded.role) {
-      return new JsonWebTokenError("Forbidden! Invalid refresh token.");
+      return next(new JsonWebTokenError("Forbidden! Invalid refresh token."));
     }
 
-    const user = await prisma.users.findUnique({ where: { id: decoded.id } });
-
-    if (!user) {
-      return next(
-        new AuthenticationError(
-          "Forbidden! No User/Seller found with this data!",
-        ),
-      );
+    let account;
+    if (decoded.role === "user") {
+      account = await prisma.users.findUnique({
+        where: { id: decoded.id },
+      });
+    } else if (decoded.role === "seller") {
+      account = await prisma.sellers.findUnique({
+        where: { id: decoded.id },
+        include: { shop: true },
+      });
     }
+
+    if (!account) {
+      return next(new AuthenticationError("No User/Seller account found!"));
+    }
+
     const newAccessToken = jwt.sign(
       { userId: decoded.id, role: decoded.role },
       process.env.ACCESS_TOKEN_SECRET as string,
       { expiresIn: "15m" },
     );
 
-    setCookie(res, "access_token", newAccessToken);
+    if (decoded.role === "user") {
+      setCookie(res, "accessToken", newAccessToken);
+    } else if (decoded.role === "seller") {
+      setCookie(res, "seller-access-token", newAccessToken);
+    }
 
-    return res.status(201).json({
+    req.role = decoded.role;
+    res.status(201).json({
       success: true,
       message: "Access token refreshed successfully!",
     });
@@ -370,7 +390,7 @@ export const verifySeller = async (
     res.status(201).json({
       success: true,
       message: "Seller verified and registered successfully!",
-      data: seller,
+      seller,
     });
   } catch (error) {
     next(error);
@@ -433,10 +453,20 @@ export const createStripeConnectLink = async (
       return next(new ValidationError("Seller ID is required!"));
     }
 
+    const seller = await prisma.sellers.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller) {
+      return next(new ValidationError("Seller not found!"));
+    }
+
+    console.log(seller.id);
+
     // const account = await stripe.accounts.create({
     //   type: "express",
-    //   country: "GB",
-    //   email: sellerId?.email,
+    //   country: seller.country || "AE",
+    //   email: seller?.email,
     //   capabilities: {
     //     card_payments: { requested: true },
     //     transfers: { requested: true },
@@ -456,11 +486,14 @@ export const createStripeConnectLink = async (
     // });
 
     res.status(200).json({
-      // url: accountLink.url,
+      url: "", //accountLink.url
       message: "Stripe connect link created successfully!",
-      // data: account,
+      data: "", //account,
     });
   } catch (error) {
+    if (error instanceof Stripe.errors.StripeError) {
+      console.log("Stripe Details:", error.raw);
+    }
     next(error);
   }
 };
@@ -492,6 +525,9 @@ export const loginSeller = async (
     if (!isMatch) {
       return next(new AuthenticationError("Invalid email or password!"));
     }
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
 
     // Generate access and refresh token
     const accessToken = jwt.sign(
