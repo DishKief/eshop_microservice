@@ -7,8 +7,22 @@ import React, { useEffect } from "react";
 import Box from "../box";
 import { Sidebar } from "./sidebar.styles";
 import Link from "next/link";
-import Logo from "apps/seller-ui/src/assets/svgs/logo";
-import { Home, ListOrdered, Logs } from "lucide-react";
+import {
+  BellPlus,
+  BellRing,
+  CalendarPlus,
+  CreditCard,
+  Home,
+  ListOrdered,
+  LogOut,
+  Logs,
+  Mail,
+  PackageSearch,
+  Settings,
+  SquarePlus,
+  Tag,
+  TicketPercent,
+} from "lucide-react";
 import SidebarItem from "./sidebar.item";
 import SidebarMenu from "./sidebar.menu";
 
@@ -60,18 +74,135 @@ const SidebarWrapper = () => {
             icon={<Home fill={getIconColor("/dashboard")} />}
             isActive={activeSidebar === "/dashboard"}
             href={"/dashboard"}
-          ></SidebarItem>
+          />
+          <div className="mt-2 block">
+            <SidebarMenu title="Main Menu">
+              <SidebarItem
+                isActive={activeSidebar === "/orders"}
+                title="Orders"
+                href="/dashboard/orders"
+                icon={
+                  <ListOrdered
+                    size={26}
+                    color={getIconColor("/dashboard/orders")}
+                  />
+                }
+              />
+              <SidebarItem
+                isActive={activeSidebar === "/payments"}
+                title="Payments"
+                href="/dashboard/payments"
+                icon={
+                  <CreditCard
+                    size={22}
+                    color={getIconColor("/dashboard/payments")}
+                  />
+                }
+              />
+            </SidebarMenu>
+            <SidebarMenu title="Products">
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/create-product"}
+                title="Create Product"
+                href="/dashboard/create-product"
+                icon={
+                  <SquarePlus
+                    size={22}
+                    color={getIconColor("/dashboard/create-product")}
+                  />
+                }
+              />
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/products"}
+                title="Products"
+                href="/dashboard/products"
+                icon={
+                  <PackageSearch
+                    size={22}
+                    color={getIconColor("/dashboard/products")}
+                  />
+                }
+              />
+            </SidebarMenu>
+            <SidebarMenu title="Events">
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/create-event"}
+                title="Create Event"
+                href="/dashboard/create-event"
+                icon={
+                  <CalendarPlus
+                    size={22}
+                    color={getIconColor("/dashboard/create-event")}
+                  />
+                }
+              />
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/events"}
+                title="Events"
+                href="/dashboard/events"
+                icon={
+                  <BellPlus
+                    size={22}
+                    color={getIconColor("/dashboard/events")}
+                  />
+                }
+              />
+            </SidebarMenu>
+            <SidebarMenu title="Controllers">
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/inbox"}
+                title="Inbox"
+                href="/dashboard/inbox"
+                icon={
+                  <Mail size={20} color={getIconColor("/dashboard/inbox")} />
+                }
+              />
+
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/settings"}
+                title="Settings"
+                href="/dashboard/settings"
+                icon={
+                  <Settings
+                    size={22}
+                    color={getIconColor("/dashboard/settings")}
+                  />
+                }
+              />
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/notifications"}
+                title="Notifications"
+                href="/dashboard/notifications"
+                icon={
+                  <BellRing
+                    size={22}
+                    color={getIconColor("/dashboard/notifications")}
+                  />
+                }
+              />
+            </SidebarMenu>
+            <SidebarMenu title="Extras">
+              <SidebarItem
+                isActive={activeSidebar === "/dashboard/discount-codes"}
+                title="Discount Codes"
+                href="/dashboard/discount-codes"
+                icon={
+                  <TicketPercent
+                    size={22}
+                    color={getIconColor("/dashboard/discount-codes")}
+                  />
+                }
+              />
+
+              <SidebarItem
+                isActive={activeSidebar === "/logout"}
+                title="Logout"
+                href="/"
+                icon={<LogOut size={22} color={getIconColor("/logout")} />}
+              />
+            </SidebarMenu>
+          </div>
         </Sidebar.Body>
-      </div>
-      <div className="mt-2 block">
-        <SidebarMenu title="Main Menu">
-          <SidebarItem
-            isActive={activeSidebar === "/orders"}
-            title="Orders"
-            href="/orders"
-            icon={<ListOrdered size={26} color={getIconColor("/accounts")} />}
-          ></SidebarItem>
-        </SidebarMenu>
       </div>
     </Box>
   );

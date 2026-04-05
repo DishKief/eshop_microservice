@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_SERVER_URI,
@@ -70,6 +71,18 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(err);
       }
     }
+
+    // ✅ Extract backend message properly
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      "Something went wrong";
+
+    // ✅ Optional: show toast globally
+    toast.error(message);
+
+    // ✅ Attach clean message to error
+    error.message = message;
 
     return Promise.reject(error);
   },

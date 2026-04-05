@@ -11,9 +11,10 @@ let refreshSubscribers: (() => void)[] = [];
 
 // Handle louout and prevent infinite loops
 const handleLogout = () => {
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
-  }
+  // Don't auto-redirect for the user-ui so guests can browse the store
+  // if (window.location.pathname !== "/login") {
+  //   window.location.href = "/login";
+  // }
 };
 
 // Handle adding a new access token to queued requests
