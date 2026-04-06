@@ -10,11 +10,14 @@ import React, { useEffect, useState } from "react";
 import { navItems } from "../../configs/constants";
 import Link from "next/link";
 import useUser from "apps/user-ui/src/hooks/useUser";
+import { useStore } from "apps/user-ui/src/store";
 
 const HeaderBottom = () => {
   const [show, setShow] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const { user, isLoading } = useUser();
+  const cart = useStore((state: any) => state.cart);
+  const wishlist = useStore((state: any) => state.wishlist);
 
   // Track scroll position to toggle sticky header
   useEffect(() => {
@@ -109,7 +112,9 @@ const HeaderBottom = () => {
                 <Link href={"/wishlist"} className="relative">
                   <HeartIcon color="#3489FF" />
                   <div className="w-6 h-6 border-2 border-white bg-red-500 rounded-full flex items-center justify-center absolute top-[-10px] right-[-10px]">
-                    <span className="text-sm text-white font-medium">0</span>
+                    <span className="text-sm text-white font-medium">
+                      {wishlist?.length}
+                    </span>
                   </div>
                 </Link>
               </div>
@@ -117,7 +122,9 @@ const HeaderBottom = () => {
                 <Link href={"/cart"} className="relative">
                   <ShoppingCart color="#3489FF" />
                   <div className="w-6 h-6 border-2 border-white bg-red-500 rounded-full flex items-center justify-center absolute top-[-10px] right-[-10px]">
-                    <span className="text-sm text-white font-medium">0</span>
+                    <span className="text-sm text-white font-medium">
+                      {cart?.length}
+                    </span>
                   </div>
                 </Link>
               </div>

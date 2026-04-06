@@ -3,9 +3,12 @@ import Link from "next/link";
 import { HeartIcon, Search, ShoppingCart, User } from "lucide-react";
 import HeaderBottom from "./header-bottom";
 import useUser from "apps/user-ui/src//hooks/useUser";
+import { useStore } from "apps/user-ui/src/store";
 
 const Header = () => {
-  const { user, isLoading, isError, refetch } = useUser();
+  const { user, isLoading } = useUser();
+  const cart = useStore((state: any) => state.cart);
+  const wishlist = useStore((state: any) => state.wishlist);
 
   return (
     <div className="w-full bg-white">
@@ -61,7 +64,9 @@ const Header = () => {
             <Link href={"/wishlist"} className="relative">
               <HeartIcon color="#3489FF" />
               <div className="w-6 h-6 border-2 border-white bg-red-500 rounded-full flex items-center justify-center absolute top-[-10px] right-[-10px]">
-                <span className="text-sm text-white font-medium">0</span>
+                <span className="text-sm text-white font-medium">
+                  {wishlist?.length}
+                </span>
               </div>
             </Link>
           </div>
@@ -69,7 +74,9 @@ const Header = () => {
             <Link href={"/cart"} className="relative">
               <ShoppingCart color="#3489FF" />
               <div className="w-6 h-6 border-2 border-white bg-red-500 rounded-full flex items-center justify-center absolute top-[-10px] right-[-10px]">
-                <span className="text-sm text-white font-medium">0</span>
+                <span className="text-sm text-white font-medium">
+                  {cart?.length}
+                </span>
               </div>
             </Link>
           </div>
