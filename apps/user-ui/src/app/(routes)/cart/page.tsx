@@ -3,6 +3,7 @@ import { useDeviceTracking } from "apps/user-ui/src/hooks/useDeviceTracking";
 import { useLocationTracking } from "apps/user-ui/src/hooks/useLocationTracking";
 import useUser from "apps/user-ui/src/hooks/useUser";
 import { useStore } from "apps/user-ui/src/store";
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,10 @@ const CartPage = () => {
   const cart = useStore((state: any) => state.cart);
   const [discountedProductId, setDiscountedProductId] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [couponCode, setCouponCode] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+
   const removeFromCart = useStore((state: any) => state.removeFromCart);
   const [loading, setLoading] = useState(false);
 
@@ -170,7 +175,93 @@ const CartPage = () => {
               </tbody>
             </table>
 
-            <div className="p-6 shadow-md w-full lg:w-[30%] bg-[#f9f9ff9] rounded-lg"></div>
+            <div className="p-6 shadow-md w-full lg:w-[30%] bg-[#f9f9ff9] rounded-lg">
+              {discountAmount > 0 && (
+                <div className="flex justify-between items-center text-[#010f1c] text-base font-medium pb-1">
+                  <span className="font-jost">
+                    Discount({discountPercent}%)
+                  </span>
+                  <span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-[#010f1c] text-[20px] font-[550] pb-3">
+                <span className="font-jost">Subtotal</span>
+                <span>${(subTotal - discountAmount).toFixed(2)}</span>
+              </div>
+              <hr className="my-4 text-slate-200" />
+              <div className="mb-4">
+                <h4 className="mb-[7px] font-[500] text-[15px]">
+                  Have a Coupon?
+                </h4>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e: any) => setCouponCode(e.target.value)}
+                    placeholder="Enter Coupon code"
+                    className="w-full p-2 border border-gray-200 rounded-l-md focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    className="bg-blue-500 cursor-pointer text-white px-4 rounded-r-md hover:bg-blue-600 transition-all"
+                    // onClick={() => applyCouponCode}
+                  >
+                    Apply
+                  </button>
+                  {/* {error && (
+                    <p className="text-sm pt-2 text-red-500">{error}</p>
+                  )} */}
+                </div>
+                <hr className="my-4 text-slate-200" />
+                <div className="mb-4">
+                  <h4 className="mb-[7px] font-[500] text-[15px]">
+                    Select Shipping Address
+                  </h4>
+                  <select
+                    value={selectedAddressId}
+                    onChange={(e: any) => setSelectedAddressId(e.target.value)}
+                    className="w-full p-2 border border-gray-200 rounded-md focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Shipping Address</option>
+                    <option value="123">Home - New York - USA</option>
+                    {/* {user?.addresses?.map((address: any) => (
+                      <option key={address.id} value={address.id}>
+                        {address.address}
+                      </option>
+                    ))} */}
+                  </select>
+                </div>
+                <hr className="my-4 text-slate-200" />
+
+                <div className="mb-4">
+                  <h4 className="mb-[7px] font-[500] text-[15px]">
+                    Select Payment Method
+                  </h4>
+                  <select
+                    // value={paymentMethod}
+                    // onChange={(e: any) => setPaymentMethod(e.target.value)}
+                    className="w-full p-2 border border-gray-200 rounded-md focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Payment Method</option>
+                    <option value="cash_on_delivery">Cash on Delivery</option>
+                    <option value="credit_card">Card</option>
+                  </select>
+                </div>
+
+                <hr className="my-4 text-slate-200" />
+
+                <div className="flex justify-between items-center text-[#010f1c] text-[20px] font-[550] pb-3">
+                  <span className="font-jost">Total</span>
+                  <span>${(subTotal - discountAmount).toFixed(2)}</span>
+                </div>
+                <button
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 cursor-pointer mt-4 py-3 bg-[#010f1c] text-white hover:bg-[#0989FF] transition-all rounded-lg"
+                >
+                  {loading && <Loader2 className="animate-spin w-5 h-5" />}
+                  {loading ? "Redirecting..." : "Proceed to Checkout"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

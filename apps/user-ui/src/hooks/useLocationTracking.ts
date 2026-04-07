@@ -5,25 +5,35 @@ import { useEffect, useState } from "react";
 const LOCATION_STORAGE_KEY = "user_location";
 const LOCATION_EXPIRY_DAYS = 20;
 
-const getStorageLocation = () => {
-  const storedData = localStorage.getItem(LOCATION_STORAGE_KEY);
-  if (!storedData) return null;
-
-  const parsedData = JSON.parse(storedData);
-  const expiryTime = LOCATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000; // 20 days in ms
-  const isExpired = Date.now() - parsedData.timestamp > expiryTime;
-
-  return isExpired ? null : parsedData.location;
-};
-
 export const useLocationTracking = () => {
   const [location, setLocation] = useState<{
     country: string;
     city: string;
-  } | null>(getStorageLocation());
+  } | null>(null);
 
   useEffect(() => {
-    if (location) return;
+    const getStorageLocation = () => {
+      try {
+        const storedData = localStorage.getItem(LOCATION_STORAGE_KEY);
+        if (!storedData) return null;
+
+        const parsedData = JSON.parse(storedData);
+        const expiryTime = LOCATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+        const isExpired = Date.now() - parsedData.timestamp > expiryTime;
+
+        return isExpired ? null : parsedData;
+      } catch {
+        return null;
+      }
+    };
+
+    const storedLocation = getStorageLocation();
+
+    if (storedLocation) {
+      setLocation(storedLocation);
+      return;
+    }
 
     fetch("http://ip-api.com/json/")
       .then((res) => res.json())
@@ -33,6 +43,7 @@ export const useLocationTracking = () => {
           city: data?.city,
           timestamp: Date.now(),
         };
+
         setLocation(newLocation);
         localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(newLocation));
       })
