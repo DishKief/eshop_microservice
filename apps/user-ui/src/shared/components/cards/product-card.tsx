@@ -95,6 +95,7 @@ const ProductCard = ({
           alt={product?.title}
           width={300}
           height={300}
+          loading="eager"
           className="w-full h-[200px] object-cover mx-auto rounded-t-md"
         />
       </Link>

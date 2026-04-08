@@ -81,6 +81,7 @@ const WishlistPage = () => {
                         className="rounded"
                         src={item.images[0]?.url}
                         alt={item.title}
+                        loading="eager"
                       />
                       <span>{item.title}</span>
                     </td>

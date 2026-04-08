@@ -552,8 +552,8 @@ export const getAllProducts = async (
       }),
     ]);
 
-    console.log("TOTAL1:", total);
-    console.log("PRODUCTS:", products);
+    // console.log("TOTAL1:", total);
+    // console.log("PRODUCTS:", products);
 
     return res.status(200).json({
       success: true,
@@ -563,6 +563,38 @@ export const getAllProducts = async (
       total,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// get product details by slug
+export const getProductBySlug = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { slug } = req.params;
+  if (!slug || slug === "undefined") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Slug is required" });
+  }
+  console.log("REQ PARAMS:", req.params);
+  try {
+    const product = await prisma.products.findUnique({
+      where: {
+        slug: req.params.slug!,
+      },
+      include: {
+        images: true,
+        shops: true,
+      },
+    });
+    return res.status(200).json({
+      success: true,
+      product,
     });
   } catch (error) {
     return next(error);

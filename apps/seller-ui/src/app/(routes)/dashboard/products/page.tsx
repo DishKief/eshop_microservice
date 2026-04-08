@@ -91,6 +91,7 @@ const ProductList = () => {
               alt={row.original.images[0]?.url}
               width={200}
               height={200}
+              loading="eager"
               className="w-12 h-12 rounded-md object-cover"
             />
           );

@@ -1,4 +1,5 @@
 import { kafka } from "@packages/utils/kafka";
+import { updateUserAnalytics } from "./services/analytics.service";
 
 const consumer = kafka.consumer({ groupId: "user-events-group" });
 
@@ -17,6 +18,7 @@ const processQueue = async () => {
     const validActions = [
       "add_to_wishlist",
       "add_to_cart",
+      "remove_from_cart",
       "product_view",
       "remove_from_wishlist",
     ];
@@ -27,7 +29,7 @@ const processQueue = async () => {
     try {
       await updateUserAnalytics(event);
     } catch (error) {
-      console.log("Failed to update user analytics", error);
+      console.log("Error processing event:", error);
     }
   }
 };
@@ -42,7 +44,11 @@ export const consumeKafkaMessages = async () => {
   await consumer.subscribe({ topic: "users-events", fromBeginning: false });
 
   await consumer.run({
-    eachMessage: async ({ message }) => {
+    eachMessage: async ({ topic, partition, message }) => {
+      console.log(
+        `Received message on ${topic}[${partition}]`,
+        message.value?.toString(),
+      );
       if (!message.value) return;
       const event = JSON.parse(message.value.toString());
       eventQueue.push(event);

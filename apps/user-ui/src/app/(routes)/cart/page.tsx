@@ -93,6 +93,7 @@ const CartPage = () => {
                         className="rounded"
                         src={item.images[0]?.url}
                         alt={item.title}
+                        loading="eager"
                       />
                       <div className="flex flex-col gap-2">
                         <span className="font-medium">{item.title}</span>

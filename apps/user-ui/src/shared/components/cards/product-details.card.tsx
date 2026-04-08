@@ -59,6 +59,7 @@ const ProductDetailsCard = ({
               alt={data?.title}
               width={400}
               height={400}
+              loading="eager"
               className="w-full rounded-lg object-contain"
             />
 
@@ -79,6 +80,7 @@ const ProductDetailsCard = ({
                     alt={`Thumnail${index}`}
                     width={80}
                     height={80}
+                    loading="eager"
                     className="rounded-md"
                   />
                 </div>
@@ -100,6 +102,7 @@ const ProductDetailsCard = ({
                   alt={data?.shops?.name}
                   width={60}
                   height={60}
+                  loading="eager"
                   className="rounded-full w-[60px] h-[60px] object-cover"
                 />
                 {/* </Link> */}

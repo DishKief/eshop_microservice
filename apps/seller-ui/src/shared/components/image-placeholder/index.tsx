@@ -82,6 +82,7 @@ const ImagePlaceHolder = ({
           width={400}
           height={300}
           alt="uploaded"
+          loading="eager"
           className="object-cover w-full h-full rounded-lg"
         />
       ) : (
