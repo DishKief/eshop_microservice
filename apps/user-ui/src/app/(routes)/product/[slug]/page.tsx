@@ -1,3 +1,4 @@
+import ProductDetails from "apps/user-ui/src/shared/modules/product/product-details";
 import axiosInstance from "apps/user-ui/src/utils/axiosInstance";
 import { Metadata } from "next";
 import React from "react";
@@ -17,23 +18,24 @@ const fetchProductDetails = async (slug: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const product = await fetchProductDetails(params.slug); // guaranteed slug
+  const { slug } = await params;
+  const product = await fetchProductDetails(slug); // guaranteed slug
 
   return {
-    title: `${product?.name} | E-Shop | DineshStack`,
+    title: `${product?.title} | E-Shop | DineshStack`,
     description:
       product?.short_description || "Discover high-quality products on E-Shop",
     keywords: product?.keywords,
     openGraph: {
-      title: product?.name,
+      title: product?.title,
       description: product?.short_description || "",
       images: [product?.images?.[0]?.url || "/default-image.jpg"],
       type: "website",
     },
     twitter: {
-      title: product?.name,
+      title: product?.title,
       description: product?.short_description || "",
       images: [product?.images?.[0]?.url || "/default-image.jpg"],
       card: "summary_large_image",
@@ -41,17 +43,17 @@ export async function generateMetadata({
   };
 }
 
-const Page = async ({ params }: { params: { slug: string } }) => {
-  const slug = params?.slug;
+const Page = async ({ params }: { params: Promise<{ slug: string }> }) => {
+  const { slug } = await params;
 
   if (!slug) {
-    console.error("Slug is missing!", params);
+    console.error("Slug is missing!", await params);
     return; // or show error / loading
   }
 
-  const productDetaiuls = await fetchProductDetails(params?.slug);
-  console.log("PRODUCT DETAILS:", productDetaiuls);
-  return <div>Page</div>;
+  const productDetaiuls = await fetchProductDetails(slug);
+
+  return <ProductDetails productDetails={productDetaiuls} />;
 };
 
 export default Page;
