@@ -2,14 +2,27 @@
 import { useDeviceTracking } from "apps/user-ui/src/hooks/useDeviceTracking";
 import { useLocationTracking } from "apps/user-ui/src/hooks/useLocationTracking";
 import useUser from "apps/user-ui/src/hooks/useUser";
-import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MapPin,
+  MessageSquareText,
+  Package,
+  ShoppingCart,
+  ShoppingCartIcon,
+  WalletMinimal,
+} from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import InnerImageZoom from "react-inner-image-zoom";
 import "react-inner-image-zoom/lib/styles.min.css";
 import Ratings from "../../components/ratings";
 import Link from "next/link";
 import { useStore } from "apps/user-ui/src/store";
+import ProductCard from "../../components/cards/product-card";
+import { URLSearchParams } from "url";
+import axiosInstance from "apps/user-ui/src/utils/axiosInstance";
 
 const ProductDetails = ({ productDetails }: { productDetails: any }) => {
   const { user, isLoading } = useUser();
@@ -64,6 +77,27 @@ const ProductDetails = ({ productDetails }: { productDetails: any }) => {
       100;
     return Math.round(discount);
   };
+
+  const fetchFilteredProducts = async () => {
+    try {
+      const query = new URLSearchParams();
+
+      query.set("priceRange", priceRange.join(","));
+      query.set("page", "1");
+      query.set("limit", "5");
+
+      const res = await axiosInstance.get(
+        `/product/api/v1/get-filtered-products?${query.toString()}`,
+      );
+      setRecommendedProducts(res.data.products);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFilteredProducts();
+  }, [priceRange]);
 
   return (
     <div className="w-full bg-[#f5f5f5] py-5">
@@ -146,9 +180,33 @@ const ProductDetails = ({ productDetails }: { productDetails: any }) => {
             <div className="">
               <Heart
                 size={25}
-                fill={"red"}
+                fill={isWishlisted ? "red" : "transparent"}
                 className="cursor-pointer"
-                color="transparent"
+                color={isWishlisted ? "transparent" : "#777"}
+                onClick={() => {
+                  if (isWishlisted) {
+                    removeFromWishlist(
+                      productDetails?.id,
+                      user,
+                      location,
+                      deviceInfo,
+                    );
+                  } else {
+                    addToWishlist(
+                      {
+                        ...productDetails,
+                        quantity,
+                        selectedOptions: {
+                          color: isSelected,
+                          size: isSelected,
+                        },
+                      },
+                      user,
+                      location,
+                      deviceInfo,
+                    );
+                  }
+                }}
               />
             </div>
           </div>
@@ -227,17 +285,169 @@ const ProductDetails = ({ productDetails }: { productDetails: any }) => {
             <div className="mt-6">
               <div className="flex items-center gap-3">
                 <div className="flex items-center rounded-md">
-                  <button className="px-3 cursor-pointer py-1 bg-gray-300 hover:bg-gray-400"></button>
+                  <button
+                    className="px-3 cursor-pointer py-1 bg-gray-300 hover:bg-gray-400 text-black font-semibold rounded-l-md"
+                    onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  >
+                    -
+                  </button>
+                  <span className="px-4 py-1 bg-gray-100">{quantity}</span>
+                  <button
+                    className="px-3 cursor-pointer py-1 bg-gray-300 hover:bg-gray-400 text-black font-semibold rounded-r-md"
+                    onClick={() => setQuantity((prev) => prev + 1)}
+                  >
+                    +
+                  </button>
                 </div>
+                {productDetails.stock > 0 ? (
+                  <span className="text-green-600 font-semibold">
+                    In Stock{" "}
+                    <span className="text-gray-500 font-medium">
+                      ({productDetails.stock} items)
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-red-600 font-semibold">
+                    Out of Stock
+                  </span>
+                )}
               </div>
+              <button
+                className={`flex mt-6 items-center gap-2 px-5 py-[10px] bg-[#ff5722] hover:bg-[#e64a19] text-white font-medium rounded-lg transition ${
+                  isInCart ? "cursor-not-allowed" : "cursor-pointer"
+                }`}
+                disabled={isInCart || productDetails?.stock === 0}
+                onClick={() => {
+                  // if (isInCart) return;
+                  addToCart(
+                    {
+                      ...productDetails,
+                      quantity,
+                      selectedOptions: {
+                        color: isSelected,
+                        size: isSizeSelected,
+                      },
+                    },
+                    user,
+                    location,
+                    deviceInfo,
+                  );
+                }}
+              >
+                <ShoppingCart size={18} />
+                <span>{isInCart ? "In Cart" : "Add to Cart"}</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="w-full flex flex-col md:flex-row">
-          <div className="w-full md:w-1/2"></div>
-          <div className="w-full md:w-1/2"></div>
+        {/* Right Column - seller information */}
+        <div className="bg-[#fafafa] -mt-6">
+          <div className="mb-1 p-3 border-b border-b-gray-100">
+            <span className="text-sm text-gray-600">Delivery Option</span>
+            <div className="flex items-center text-gray-600 gap-1">
+              <MapPin size={18} className="ml-[-5px]" />
+              <span className="text-md font-normal">
+                {location?.city + ", " + location?.country}
+              </span>
+            </div>
+          </div>
+          <div className="mb-1 px-3 pb-1 border-b border-b-gray-100">
+            <span className="text-sm text-gray-600">Return & Warranty</span>
+            <div className="flex items-center text-gray-600 gap-1">
+              <Package size={18} className="ml-[-5px]" />
+              <span className="text-base font-normal">7 Days Returns</span>
+            </div>
+            <div className="flex items-center py-2 text-gray-600 gap-1">
+              <WalletMinimal size={18} className="ml-[-5px]" />
+              <span className="text-base font-normal">
+                Warranty not available
+              </span>
+            </div>
+          </div>
+
+          <div className="px-3 py-1">
+            <div className="w-[85%] rounded-lg">
+              {/* Sold by section */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm text-gray-600 font-light">
+                    Sold by
+                  </span>
+                  <span className="block max-w-[150px] truncate font-medium text-md">
+                    {productDetails?.shops?.name}
+                  </span>
+                </div>
+                <Link
+                  href={"#"}
+                  className="text-blue-500 text-sm flex items-center gap-1"
+                >
+                  <MessageSquareText size={18} />
+                  Chat Now
+                </Link>
+              </div>
+
+              {/* Seller performance stats */}
+              <div className="grid grid-cols-3 gap-2 border-t border-t-gray-200 mt-3 pt-3">
+                <div>
+                  <p className="text-[12px] text-gray-500">Seller Ratings</p>
+                  <p className="text-lg font-semibold">88%</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-gray-500">Ship on Time</p>
+                  <p className="text-lg font-semibold">100%</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-gray-500">Chat Response</p>
+                  <p className="text-lg font-semibold">95%</p>
+                </div>
+              </div>
+
+              {/* Go to Store */}
+              <div className="text-center mt-4 border-t border-t-gray-200 pt-2">
+                <Link
+                  href={`/shop/${productDetails?.shops?.id}`}
+                  className="text-blue-500 font-medium text-sm hover:underline"
+                >
+                  GO TO STORE
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-[90%] lg:w-[80%] mx-auto mt-5">
+        <div className="bg-white min-h-[60vh] h-full p-5">
+          <h3 className="text-lg font-semibold">
+            Product deatils of {productDetails?.title}
+          </h3>
+          <div
+            className="prose prose-sm text-slate-200 max-w-none"
+            dangerouslySetInnerHTML={{
+              __html: productDetails?.detailed_description,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="w-[90%] lg:w-[80%] mx-auto">
+        <div className="bg-white min-h-[50vh] h-full mt-5 p-5">
+          <h3 className="text-lg font-semibold">
+            Ratings & Reviews of {productDetails?.title}
+          </h3>
+          <p className="text-center pt-14">No Reviews yet</p>
+        </div>
+      </div>
+
+      <div className="w-[90%] lg:w-[80%] mx-auto">
+        <div className="w-full h-full my-5 p-5">
+          <h3 className="text-xl font-semibold mb-2">You may also like</h3>
+          <div className="m-auto grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+            {recommendedProducts?.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

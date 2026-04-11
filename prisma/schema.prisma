@@ -17,12 +17,13 @@ model images {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   file_id   String
   url       String
-  userId    String?   @db.ObjectId @unique
-  shopId    String?   @db.ObjectId @unique
-  users     users?    @relation(fields: [userId], references: [id])
-  shops     shops?     @relation(fields: [shopId], references: [id])
-  products  products? @relation(fields: [productId], references: [id])
+  isPrimary Boolean @default(false)
+position  Int?
+  userAvatar   users? @relation("UserAvatar")
+  shopAvatar   shops? @relation("ShopAvatar")
+  shopCover    shops? @relation("ShopCover")
   productId String?   @db.ObjectId
+  product   products? @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,7 +34,8 @@ model users {
   email     String   @unique
   password  String?
   following String[]
-  avatar    images?
+  avatarId String? @db.ObjectId @unique
+  avatar   images? @relation("UserAvatar", fields: [avatarId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   shopReviews shopReviews[]
@@ -57,8 +59,10 @@ model shops {
   name      String
   bio       String?
   category  String
-  avatar    images?
-  coverBanner String?
+  avatarId String? @db.ObjectId @unique
+  avatar   images? @relation("ShopAvatar", fields: [avatarId], references: [id])
+  coverBannerId String? @db.ObjectId @unique
+  coverBanner   images? @relation("ShopCover", fields: [coverBannerId], references: [id])
   address   String
   opening_hours String
   website   String?
@@ -143,8 +147,8 @@ model products {
   deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  shopId String @db.ObjectId
-  shops shops @relation(fields: [shopId], references: [id])
+  shopId    String @db.ObjectId
+  shops     shops @relation(fields: [shopId], references: [id])
   totalSales  Int      @default(0)
 }
 
